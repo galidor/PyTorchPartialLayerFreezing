@@ -24,3 +24,4 @@ Limitations
 -
 Unfortunately, this code does not support freezing weights in ```Conv1d``` layers, because the backward pass is still inconsistent between ```Conv1d``` and other convolutional layers in PyTorch.
 Please also note, our code freezes entire filters of convolutional layers, rather than specific weighs. We kept it this way to simplify the usage. If you want us to extend the functionality of our code, feel free to write to us, and we will be happy to do so.
+Since the mechanism for updating weights in case of using weight decay is a bit different, the weights may still be changing if ```weight_decay > 0``` in your optimzier settings.
