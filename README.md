@@ -17,11 +17,17 @@ Usage
     partial_freezing.freeze_conv2d_params(layer, indices)
     ```
     That will register a backward hook for a given parameters within the ```layer```, which will zero the gradients at specified ```indices```. In this case, ```indices``` is a list of integers, specifying which filters you intend to freeze.
-  
+5. If you plan to re-use the function (change the indices of frozen layers), make sure, you save the handles to the backward hooks returned by ```freeze_conv2d_params()```, and pass them as arguments, when re-using the function in your code at the same layer. It can be done as follows:
+    ```python
+    weight_hook_handle, bias_hook_handle = partial_freezing.freeze_conv2d_params(layer, indices)
+    (...) # your code
+    new_weight_hook_handle, new_bias_hook_handle = partial_freezing.freeze_conv2d_params(layer, indices, weight_hook_handle=weight_hook_handle, bias_hook_handle=bias_hook_handle)
+    ```
+    This will ensure that your current hooks will be removed and the new will be added properly.
+    
 Some more use cases can be found in test.py.
   
 Limitations
 -
-Unfortunately, this code does not support freezing weights in ```Conv1d``` layers, because the backward pass is still inconsistent between ```Conv1d``` and other convolutional layers in PyTorch.
-Please also note, our code freezes entire filters of convolutional layers, rather than specific weighs. We kept it this way to simplify the usage. If you want us to extend the functionality of our code, feel free to write to us, and we will be happy to do so.
-Since the mechanism for updating weights in case of using weight decay is a bit different, the weights may still be changing if ```weight_decay > 0``` in your optimzier settings.
+* Our code freezes entire filters of convolutional layers, rather than specific weighs. We kept it this way to simplify the usage. If you want us to extend the functionality of our code, feel free to write to us, and we will be happy to do so.
+* Since the mechanism for updating weights in case of using weight decay is a bit different, the weights may still be changing if ```weight_decay > 0``` in your optimzier settings.
