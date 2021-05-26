@@ -7,6 +7,8 @@ from test_models import net_conv1d, net_conv3d, vgg16_bn
 
 
 def test_conv1d_freezing(net):
+    device = 'cuda:0' if next(model.parameters()).is_cuda else 'cpu'
+
     indices = [0, 1]
     freeze_conv1d_params(net.conv1, indices)
 
@@ -17,7 +19,7 @@ def test_conv1d_freezing(net):
     init_biases = net.conv1.bias.clone()
 
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
-    random_input1d = torch.randn((1, 5, 32))
+    random_input1d = torch.randn((1, 5, 32)).to(device)
 
     net.train()
     optimizer.zero_grad()
@@ -28,18 +30,20 @@ def test_conv1d_freezing(net):
     if (net.conv1.bias.grad[indices] == torch.zeros_like(net.conv1.bias.grad[indices])).all() and \
             (net.conv1.weight.grad[indices, :, :] == torch.zeros_like(
                 net.conv1.weight.grad[indices, :, :])).all():
-        print("Conv1d grads passed")
+        print("Conv1d grads passed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     else:
-        print("Conv1d grads failed")
+        print("Conv1d grads failed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     optimizer.step()
 
     if (net.conv1.bias == init_biases)[indices].all() and (net.conv1.weight == init_weights)[indices].all():
-        print("Conv1d frozen weights and biases passed")
+        print("Conv1d frozen weights and biases passed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     else:
-        print("Conv1d frozen weights and biases failed")
+        print("Conv1d frozen weights and biases failed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
 
 
 def test_conv2d_freezing(net):
+    device = 'cuda:0' if next(model.parameters()).is_cuda else 'cpu'
+
     indices = [2, 3, 4, 5]
     for module in net.features:
         if isinstance(module, torch.nn.Conv2d):
@@ -49,29 +53,28 @@ def test_conv2d_freezing(net):
     init_biases = net.features[3].bias.clone()
 
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
-    random_input2d = torch.randn((1, 3, 32, 32))
+    random_input2d = torch.randn((1, 3, 32, 32)).to(device)
 
     net.train()
     optimizer.zero_grad()
     output = net(random_input2d)
-    loss = F.cross_entropy(output, torch.tensor([5]))
+    loss = F.cross_entropy(output, torch.tensor([5]).to(device))
     loss.backward(create_graph=True)
     if (net.features[3].bias.grad[indices] == torch.zeros_like(net.features[3].bias.grad[indices])).all() and \
        (net.features[3].weight.grad[indices, :, :, :] == torch.zeros_like(net.features[3].weight.grad[indices, :, :, :])).all():
-        print("Conv2d grads passed")
+        print("Conv2d grads passed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     else:
-        print("Conv2d grads failed")
+        print("Conv2d grads failed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     optimizer.step()
 
     if (net.features[3].bias == init_biases)[indices].all() and (net.features[3].weight == init_weights)[indices].all():
-        print("Conv2d frozen weights and biases passed")
+        print("Conv2d frozen weights and biases passed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     else:
-        print("Conv2d frozen weights and biases failed")
+        print("Conv2d frozen weights and biases failed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
 
 
 def test_conv3d_freezing(net):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    net.to(device)
+    device = 'cuda:0' if next(model.parameters()).is_cuda else 'cpu'
 
     indices = [2, 3, 4]
     freeze_conv3d_params(net.conv1, indices)
@@ -90,18 +93,20 @@ def test_conv3d_freezing(net):
     if (net.conv1.bias.grad[indices] == torch.zeros_like(net.conv1.bias.grad[indices])).all() and \
             (net.conv1.weight.grad[indices, :, :, :, :] == torch.zeros_like(
                 net.conv1.weight.grad[indices, :, :, :, :])).all():
-        print("Conv3d grads passed")
+        print("Conv3d grads passed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     else:
-        print("Conv3d grads failed")
+        print("Conv3d grads failed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     optimizer.step()
 
     if (net.conv1.bias == init_biases)[indices].all() and (net.conv1.weight == init_weights)[indices].all():
-        print("Conv3d frozen weights and biases passed")
+        print("Conv3d frozen weights and biases passed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     else:
-        print("Conv3d frozen weights and biases failed")
+        print("Conv3d frozen weights and biases failed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
 
 
 def test_linear_freezing(net):
+    device = 'cuda:0' if next(model.parameters()).is_cuda else 'cpu'
+
     indices = [2, 3, 4, 5]
     freeze_linear_params(net.classifier[4], indices)
 
@@ -109,26 +114,26 @@ def test_linear_freezing(net):
     init_biases = net.classifier[4].bias.clone()
 
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
-    random_input2d = torch.randn((1, 3, 32, 32))
+    random_input2d = torch.randn((1, 3, 32, 32)).to(device)
 
     net.train()
     optimizer.zero_grad()
     output = net(random_input2d)
-    loss = F.cross_entropy(output, torch.tensor([5]))
+    loss = F.cross_entropy(output, torch.tensor([5]).to(device))
     loss.backward()
 
     if (net.classifier[4].bias.grad[indices] == torch.zeros_like(net.classifier[4].bias.grad[indices])).all() and \
             (net.classifier[4].weight.grad[indices, :] == torch.zeros_like(
                 net.classifier[4].weight.grad[indices, :])).all():
-        print("Linear grads passed")
+        print("Linear grads passed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     else:
-        print("Linear grads failed")
+        print("Linear grads failed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     optimizer.step()
 
     if (net.classifier[4].bias == init_biases)[indices].all() and (net.classifier[4].weight == init_weights)[indices].all():
-        print("Linear frozen weights and biases passed")
+        print("Linear frozen weights and biases passed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
     else:
-        print("Linear frozen weights and biases failed")
+        print("Linear frozen weights and biases failed{:}".format(' on CUDA' if device == 'cuda:0' else ''))
 
 
 if __name__ == '__main__':
@@ -140,3 +145,14 @@ if __name__ == '__main__':
     test_conv3d_freezing(model)
     model = vgg16_bn()
     test_linear_freezing(model)
+
+    # Testing cuda
+    if torch.cuda.is_available():
+        model = net_conv1d().cuda()
+        test_conv1d_freezing(model)
+        model = vgg16_bn().cuda()
+        test_conv2d_freezing(model)
+        model = net_conv3d().cuda()
+        test_conv3d_freezing(model)
+        model = vgg16_bn().cuda()
+        test_linear_freezing(model)
