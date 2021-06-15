@@ -20,8 +20,9 @@ def freeze_conv1d_params(layer, weight_indices, bias_indices=None, weight_hook_h
     if max(weight_indices) >= layer.weight.shape[0]:
         raise IndexError("weight_indices must be less than the number output channels")
 
-    if max(bias_indices) >= layer.bias.shape[0]:
-        raise IndexError("bias_indices must be less than the number output channels")
+    if layer.bias is not None:
+        if max(bias_indices) >= layer.bias.shape[0]:
+            raise IndexError("bias_indices must be less than the number output channels")
 
     def freezing_hook_weight_full(grad, weight_multiplier):
         return grad * weight_multiplier
@@ -32,13 +33,16 @@ def freeze_conv1d_params(layer, weight_indices, bias_indices=None, weight_hook_h
     weight_multiplier = torch.ones(layer.weight.shape[0]).to(layer.weight.device)
     weight_multiplier[weight_indices] = 0
     weight_multiplier = weight_multiplier.view(-1, 1, 1)
-    bias_multiplier = torch.ones(layer.weight.shape[0]).to(layer.bias.device)
-    bias_multiplier[bias_indices] = 0
     freezing_hook_weight = lambda grad: freezing_hook_weight_full(grad, weight_multiplier)
-    freezing_hook_bias = lambda grad: freezing_hook_bias_full(grad, bias_multiplier)
-
     weight_hook_handle = layer.weight.register_hook(freezing_hook_weight)
-    bias_hook_handle = layer.bias.register_hook(freezing_hook_bias)
+
+    if layer.bias is not None:
+        bias_multiplier = torch.ones(layer.weight.shape[0]).to(layer.bias.device)
+        bias_multiplier[bias_indices] = 0
+        freezing_hook_bias = lambda grad: freezing_hook_bias_full(grad, bias_multiplier)
+        bias_hook_handle = layer.bias.register_hook(freezing_hook_bias)
+    else:
+        bias_hook_handle = None
 
     return weight_hook_handle, bias_hook_handle
 
@@ -61,8 +65,9 @@ def freeze_conv2d_params(layer, weight_indices, bias_indices=None, weight_hook_h
     if max(weight_indices) >= layer.weight.shape[0]:
         raise IndexError("weight_indices must be less than the number output channels")
 
-    if max(bias_indices) >= layer.bias.shape[0]:
-        raise IndexError("bias_indices must be less than the number output channels")
+    if layer.bias is not None:
+        if max(bias_indices) >= layer.bias.shape[0]:
+            raise IndexError("bias_indices must be less than the number output channels")
 
     def freezing_hook_weight_full(grad, weight_multiplier):
         return grad * weight_multiplier
@@ -73,13 +78,16 @@ def freeze_conv2d_params(layer, weight_indices, bias_indices=None, weight_hook_h
     weight_multiplier = torch.ones(layer.weight.shape[0]).to(layer.weight.device)
     weight_multiplier[weight_indices] = 0
     weight_multiplier = weight_multiplier.view(-1, 1, 1, 1)
-    bias_multiplier = torch.ones(layer.weight.shape[0]).to(layer.bias.device)
-    bias_multiplier[bias_indices] = 0
     freezing_hook_weight = lambda grad: freezing_hook_weight_full(grad, weight_multiplier)
-    freezing_hook_bias = lambda grad: freezing_hook_bias_full(grad, bias_multiplier)
-
     weight_hook_handle = layer.weight.register_hook(freezing_hook_weight)
-    bias_hook_handle = layer.bias.register_hook(freezing_hook_bias)
+
+    if layer.bias is not None:
+        bias_multiplier = torch.ones(layer.weight.shape[0]).to(layer.bias.device)
+        bias_multiplier[bias_indices] = 0
+        freezing_hook_bias = lambda grad: freezing_hook_bias_full(grad, bias_multiplier)
+        bias_hook_handle = layer.bias.register_hook(freezing_hook_bias)
+    else:
+        bias_hook_handle = None
 
     return weight_hook_handle, bias_hook_handle
 
@@ -102,8 +110,9 @@ def freeze_conv3d_params(layer, weight_indices, bias_indices=None, weight_hook_h
     if max(weight_indices) >= layer.weight.shape[0]:
         raise IndexError("weight_indices must be less than the number output channels")
 
-    if max(bias_indices) >= layer.bias.shape[0]:
-        raise IndexError("bias_indices must be less than the number output channels")
+    if layer.bias is not None:
+        if max(bias_indices) >= layer.bias.shape[0]:
+            raise IndexError("bias_indices must be less than the number output channels")
 
     def freezing_hook_weight_full(grad, weight_multiplier):
         return grad * weight_multiplier
@@ -114,13 +123,16 @@ def freeze_conv3d_params(layer, weight_indices, bias_indices=None, weight_hook_h
     weight_multiplier = torch.ones(layer.weight.shape[0]).to(layer.weight.device)
     weight_multiplier[weight_indices] = 0
     weight_multiplier = weight_multiplier.view(-1, 1, 1, 1, 1)
-    bias_multiplier = torch.ones(layer.weight.shape[0]).to(layer.bias.device)
-    bias_multiplier[bias_indices] = 0
     freezing_hook_weight = lambda grad: freezing_hook_weight_full(grad, weight_multiplier)
-    freezing_hook_bias = lambda grad: freezing_hook_bias_full(grad, bias_multiplier)
-
     weight_hook_handle = layer.weight.register_hook(freezing_hook_weight)
-    bias_hook_handle = layer.bias.register_hook(freezing_hook_bias)
+
+    if layer.bias is not None:
+        bias_multiplier = torch.ones(layer.weight.shape[0]).to(layer.bias.device)
+        bias_multiplier[bias_indices] = 0
+        freezing_hook_bias = lambda grad: freezing_hook_bias_full(grad, bias_multiplier)
+        bias_hook_handle = layer.bias.register_hook(freezing_hook_bias)
+    else:
+        bias_hook_handle = None
 
     return weight_hook_handle, bias_hook_handle
 
@@ -143,8 +155,9 @@ def freeze_linear_params(layer, weight_indices, bias_indices=None, weight_hook_h
     if max(weight_indices) >= layer.weight.shape[0]:
         raise IndexError("weight_indices must be less than the number output channels")
 
-    if max(bias_indices) >= layer.bias.shape[0]:
-        raise IndexError("bias_indices must be less than the number output channels")
+    if layer.bias is not None:
+        if max(bias_indices) >= layer.bias.shape[0]:
+            raise IndexError("bias_indices must be less than the number output channels")
 
     def freezing_hook_weight_full(grad, weight_multiplier):
         return grad * weight_multiplier
@@ -155,12 +168,15 @@ def freeze_linear_params(layer, weight_indices, bias_indices=None, weight_hook_h
     weight_multiplier = torch.ones(layer.weight.shape[0]).to(layer.weight.device)
     weight_multiplier[weight_indices] = 0
     weight_multiplier = weight_multiplier.view(-1, 1)
-    bias_multiplier = torch.ones(layer.weight.shape[0]).to(layer.bias.device)
-    bias_multiplier[bias_indices] = 0
     freezing_hook_weight = lambda grad: freezing_hook_weight_full(grad, weight_multiplier)
-    freezing_hook_bias = lambda grad: freezing_hook_bias_full(grad, bias_multiplier)
-
     weight_hook_handle = layer.weight.register_hook(freezing_hook_weight)
-    bias_hook_handle = layer.bias.register_hook(freezing_hook_bias)
+
+    if layer.bias is not None:
+        bias_multiplier = torch.ones(layer.weight.shape[0]).to(layer.bias.device)
+        bias_multiplier[bias_indices] = 0
+        freezing_hook_bias = lambda grad: freezing_hook_bias_full(grad, bias_multiplier)
+        bias_hook_handle = layer.bias.register_hook(freezing_hook_bias)
+    else:
+        bias_hook_handle = None
 
     return weight_hook_handle, bias_hook_handle
